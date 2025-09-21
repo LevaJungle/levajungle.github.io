@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Voice Recorder</title>
+  <style>
+    body{display:flex;justify-content:center;align-items:center;height:100vh;margin:0;background:#111;}
+    .controls{display:flex;gap:40px}
+    button{width:80px;height:80px;border:none;border-radius:50%;background:#333;color:white;font-size:32px;display:flex;justify-content:center;align-items:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.5);transition:background .2s;}
+    button:disabled{opacity:.4;cursor:not-allowed}
+    button:hover:enabled{background:#555}
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+  <div class="controls">
+    <button id="record"><i class="fa fa-microphone"></i></button>
+    <button id="stop" disabled><i class="fa fa-square"></i></button>
+  </div>
+
+  <script>
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let decodedBuffer = null;
+    let audioCtx = null;
+    let micStream = null;
+
+    const recordBtn = document.getElementById('record');
+    const stopBtn = document.getElementById('stop');
+
+    recordBtn.addEventListener('click', async () => {
+      try{
+        if(!micStream){
+          micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        mediaRecorder = new MediaRecorder(micStream);
+        recordedChunks = [];
+        mediaRecorder.ondataavailable = e => { if(e.data && e.data.size>0) recordedChunks.push(e.data); };
+        mediaRecorder.onstop = onRecordingStopped;
+        mediaRecorder.start();
+        recordBtn.disabled = true;
+        stopBtn.disabled = false;
+        stopBtn.innerHTML = '<i class="fa fa-square"></i>';
+      }catch(err){
+        console.error(err);
+        alert('Ошибка доступа к микрофону: ' + (err.message||err));
+      }
+    });
+
+    stopBtn.addEventListener('click', () => {
+      if(mediaRecorder && mediaRecorder.state !== 'inactive'){
+        mediaRecorder.stop();
+      } else if(decodedBuffer){
+        playReversedRecording();
+      }
+    });
+
+    async function onRecordingStopped(){
+      const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+      try{
+        const arrayBuffer = await blob.arrayBuffer();
+        decodedBuffer = await audioCtx.decodeAudioData(arrayBuffer.slice(0));
+        stopBtn.innerHTML = '<i class="fa fa-play"></i>';
+        recordBtn.disabled = false;
+      }catch(err){
+        console.error(err);
+        alert('Не удалось декодировать аудио: ' + (err.message||err));
+      }
+    }
+
+    function playReversedRecording(){
+      if(!decodedBuffer) return;
+      const reversed = makeReversedBuffer(decodedBuffer);
+      const src = audioCtx.createBufferSource();
+      src.buffer = reversed;
+      src.connect(audioCtx.destination);
+      src.start();
+    }
+
+    function makeReversedBuffer(audioBuffer){
+      const numChannels = audioBuffer.numberOfChannels;
+      const length = audioBuffer.length;
+      const sampleRate = audioBuffer.sampleRate;
+      const reversed = audioCtx.createBuffer(numChannels, length, sampleRate);
+      for(let ch=0; ch<numChannels; ch++){
+        const src = audioBuffer.getChannelData(ch);
+        const dst = reversed.getChannelData(ch);
+        for(let i=0, j=length-1; i<length; i++, j--){
+          dst[i] = src[j];
+        }
+      }
+      return reversed;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Стартовая страница</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 12px;
+    }
+
+    .container {
+      max-width: 480px;
+      width: 100%;
+      background: white;
+      border-radius: 24px 24px 0 0;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      padding: 20px 16px 30px;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #222;
+      letter-spacing: -0.3px;
+    }
+
+    .links {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+
+    .links a {
+      color: #0066cc;
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: 500;
+      padding: 8px 0;
+      border-bottom: 2px solid transparent;
+      transition: border-color 0.2s;
+    }
+
+    .links a:hover {
+      border-bottom-color: #0066cc;
+    }
+
+    .add-button {
+      width: 100%;
+      background: #e9f0ff;
+      border: 2px dashed #0066cc;
+      border-radius: 60px;
+      padding: 16px 20px;
+      font-size: 20px;
+      font-weight: 600;
+      color: #0066cc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 24px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .add-button:active {
+      background: #d0e0ff;
+      transform: scale(0.98);
+    }
+
+    .ideas-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .idea-card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 18px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.02);
+      border: 1px solid #f0f0f0;
+      transition: box-shadow 0.2s;
+    }
+
+    .idea-card:active {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    .idea-text {
+      font-size: 18px;
+      line-height: 1.4;
+      margin-bottom: 16px;
+      word-break: break-word;
+      color: #1e1e1e;
+      font-weight: 450;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .card-actions button {
+      background: none;
+      border: none;
+      font-size: 28px;
+      padding: 8px 10px;
+      border-radius: 40px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      min-width: 52px;
+      min-height: 52px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #f8f8f8;
+      border: 1px solid #eaeaea;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .card-actions button:active {
+      background: #e0e0e0;
+      transform: scale(0.94);
+    }
+
+    .empty-message {
+      text-align: center;
+      color: #888;
+      font-size: 18px;
+      padding: 40px 20px;
+      background: #fafafa;
+      border-radius: 32px;
+      border: 2px dashed #ddd;
+    }
+
+    /* Убираем outline для мобильных, но оставляем для accessibility */
+    button:focus-visible {
+      outline: 3px solid #0066cc;
+    }
+
+    /* Маленький хинт для кнопок */
+    .card-actions button[data-type="edit"]:hover { background: #e3f2fd; }
+    .card-actions button[data-type="delete"]:hover { background: #ffebee; }
+    .card-actions button[data-type="move"]:hover { background: #e8f0fe; }
+
+    /* Просто для красоты */
+    .footer-note {
+      margin-top: 20px;
+      font-size: 13px;
+      color: #aaa;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>стартовая станица</h1>
+
+    <!-- Три ссылки, позже замените href и текст -->
+    <div class="links">
+      <a href="#">Ссылка 1</a>
+      <a href="#">Ссылка 2</a>
+      <a href="#">Ссылка 3</a>
+    </div>
+
+    <!-- Кнопка добавления новой идеи ➕ -->
+    <button class="add-button" id="addIdeaBtn">
+      <span style="font-size: 32px; line-height: 1;">➕</span> Добавить идею
+    </button>
+
+    <!-- Контейнер для карточек идей -->
+    <div id="ideasContainer" class="ideas-container">
+      <!-- Идеи будут отрисованы динамически -->
+    </div>
+
+    <!-- Маленькая подпись (необязательно) -->
+    <div class="footer-note">— идеи сохраняются в телефоне —</div>
+  </div>
+
+  <script>
+    (function() {
+      // ----- Элементы DOM -----
+      const ideasContainer = document.getElementById('ideasContainer');
+      const addButton = document.getElementById('addIdeaBtn');
+
+      // ----- Ключ для localStorage -----
+      const STORAGE_KEY = 'ideaBlocks';
+
+      // ----- Загрузка начальных данных -----
+      let ideas = [];
+
+      function loadFromStorage() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          try {
+            ideas = JSON.parse(stored);
+            // Убедимся, что у каждого блока есть поле id (на случай старых данных)
+            ideas = ideas.filter(item => item && typeof item.text === 'string').map(item => ({
+              id: item.id || Date.now() + '-' + Math.random(),
+              text: item.text
+            }));
+          } catch (e) {
+            console.warn('Ошибка парсинга localStorage, сброс к примерам');
+            ideas = getDefaultIdeas();
+          }
+        } else {
+          // Если ничего нет — создаём примеры для наглядности
+          ideas = getDefaultIdeas();
+        }
+      }
+
+      function getDefaultIdeas() {
+        return [
+          { id: '1', text: 'Позвонить маме' },
+          { id: '2', text: 'Купить продукты: молоко, хлеб, яблоки' },
+          { id: '3', text: 'Записаться к врачу' }
+        ];
+      }
+
+      // ----- Сохранение в localStorage и перерисовка -----
+      function saveAndRender() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(ideas));
+        renderIdeas();
+      }
+
+      // ----- Отрисовка всех карточек -----
+      function renderIdeas() {
+        if (!ideasContainer) return;
+
+        if (ideas.length === 0) {
+          ideasContainer.innerHTML = `<div class="empty-message">✨ Здесь пока нет идей ✨<br><small>нажмите «➕ Добавить идею»</small></div>`;
+          return;
+        }
+
+        // Строим разметку в обратном порядке? Нет, показываем как есть (первый в массиве — самый верхний)
+        let html = '';
+        ideas.forEach(idea => {
+          // Экранируем текст, чтобы избежать XSS (хотя тут ввод через prompt, но на всякий случай)
+          const safeText = escapeHtml(idea.text);
+          html += `
+            <div class="idea-card" data-id="${idea.id}">
+              <div class="idea-text">${safeText}</div>
+              <div class="card-actions">
+                <button class="edit-btn" data-id="${idea.id}" title="Редактировать">📝</button>
+                <button class="delete-btn" data-id="${idea.id}" title="Удалить">❌</button>
+                <button class="move-top-btn" data-id="${idea.id}" title="Переместить в самый верх">🔼</button>
+              </div>
+            </div>
+          `;
+        });
+        ideasContainer.innerHTML = html;
+      }
+
+      // Простейшая защита от HTML
+      function escapeHtml(unsafe) {
+        if (!unsafe) return '';
+        return unsafe
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      // ----- Добавление новой идеи (в начало) -----
+      function addNewIdea() {
+        const userText = prompt('✏️ Введите текст новой идеи:', '');
+        if (userText === null) return; // отмена
+        const trimmed = userText.trim();
+        if (trimmed === '') {
+          alert('Идея не может быть пустой.');
+          return;
+        }
+
+        // Создаём объект с уникальным id
+        const newIdea = {
+          id: Date.now() + '-' + Math.random().toString(36).substr(2, 8),
+          text: trimmed
+        };
+
+        // Добавляем в начало массива
+        ideas.unshift(newIdea);
+        saveAndRender();
+      }
+
+      // ----- Обработка кликов через делегирование (на контейнере ideasContainer) -----
+      function handleIdeaContainerClick(e) {
+        const target = e.target.closest('button');
+        if (!target) return;
+
+        const ideaCard = target.closest('.idea-card');
+        if (!ideaCard) return; // Кнопка вне карточки (хотя у нас все кнопки внутри, но на всякий случай)
+
+        const ideaId = ideaCard.dataset.id;
+        // Найдём индекс идеи в массиве
+        const index = ideas.findIndex(idea => idea.id === ideaId);
+        if (index === -1) return; // не найдено
+
+        // Определяем какая кнопка нажата по классам
+        if (target.classList.contains('edit-btn')) {
+          // Редактирование
+          const currentText = ideas[index].text;
+          const newText = prompt('📝 Редактировать идею:', currentText);
+          if (newText === null) return; // отмена
+          const trimmed = newText.trim();
+          if (trimmed === '') {
+            alert('Текст не может быть пустым.');
+            return;
+          }
+          ideas[index].text = trimmed;
+          saveAndRender();
+        }
+        else if (target.classList.contains('delete-btn')) {
+          // Удаление с подтверждением
+          if (confirm('❌ Удалить эту идею?')) {
+            ideas.splice(index, 1);
+            saveAndRender();
+          }
+        }
+        else if (target.classList.contains('move-top-btn')) {
+          // Переместить в самый верх
+          if (index === 0) {
+            // Уже вверху — можно ничего не делать или показать подсказку
+            alert('Идея уже наверху');
+            return;
+          }
+          const [idea] = ideas.splice(index, 1); // удаляем элемент
+          ideas.unshift(idea); // вставляем в начало
+          saveAndRender();
+        }
+      }
+
+      // ----- Инициализация и обработчики -----
+      function init() {
+        loadFromStorage();
+        renderIdeas();
+
+        // Кнопка добавления
+        if (addButton) {
+          addButton.addEventListener('click', addNewIdea);
+        }
+
+        // Делегирование на контейнере идей
+        if (ideasContainer) {
+          ideasContainer.addEventListener('click', handleIdeaContainerClick);
+        }
+      }
+
+      // Запуск после полной загрузки DOM
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+
+      // Для отладки: сохраняем актуальный массив в глобальную переменную (необязательно)
+      window.debugIdeas = () => ideas;
+    })();
+  </script>
+</body>
+</html>
